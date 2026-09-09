@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEDIBOT - आशा कार्यकर्ता कियॉस्क (ASHA Touchscreen Kiosk)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="kiosk-app">
+        <!-- Top App Bar -->
+        <header class="top-bar">
+            <div class="kiosk-brand">
+                <div class="brand-icon">🩺</div>
+                <div>
+                    <h1>MEDIBOT KIOSK</h1>
+                    <p class="subtext" id="lblSubtext">ग्रामीण स्वास्थ्य केंद्र • रामपुर</p>
+                </div>
+            </div>
+
+            <div class="top-actions">
+                <div class="status-pill online">
+                    <span class="dot"></span>
+                    <span id="lblMode">ऑफलाइन रेडी (मेमोरी 94%)</span>
+                </div>
+                <div class="battery-indicator">
+                    <span>🔋 88%</span>
+                </div>
+                <button class="lang-toggle" onclick="toggleLanguage()" id="btnLang">English</button>
+                <button class="sos-btn" onclick="triggerSosAlert()" id="btnSos">
+                    🚨 आपातकालीन SOS
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workflow Area -->
+        <main class="kiosk-main">
+            <!-- Left Side: Wizard Steps -->
+            <div class="workflow-pane">
+                <div class="steps-nav">
+                    <div class="step-badge active" id="step1Nav">
+                        <span class="step-num">1</span>
+                        <span class="step-title" id="lblStep1">NFC कार्ड टैप</span>
+                    </div>
+                    <div class="step-badge" id="step2Nav">
+                        <span class="step-num">2</span>
+                        <span class="step-title" id="lblStep2">अंगूठा जांच (Hb)</span>
+                    </div>
+                    <div class="step-badge" id="step3Nav">
+                        <span class="step-num">3</span>
+                        <span class="step-title" id="lblStep3">रिपोर्ट व पर्ची</span>
+                    </div>
+                </div>
+
+                <!-- Stage 1: Card Tap -->
+                <section class="stage-card" id="stage1">
+                    <div class="stage-icon-anim">💳</div>
+                    <h2 id="lblTapPrompt">मरीज का स्मार्ट NFC कार्ड कियॉस्क पर लगाएं</h2>
+                    <p class="stage-desc" id="lblTapDesc">कार्ड टच करते ही मरीज का नाम, ABHA ID और पूर्व मेडिकल इतिहास खुल जाएगा।</p>
+                    
+                    <div class="action-row" id="quickTapButtons" style="flex-wrap: wrap; gap: 8px;">
+                        <button class="touch-btn primary" onclick="simulateCardTap('Lata Devi', 'ABHA-9421-8840-9102', 26)">
+                            ⚡ लता देवी (Lata Devi)
+                        </button>
+                        <button class="touch-btn secondary" onclick="simulateCardTap('Sunita Verma', 'ABHA-6311-2051-4491', 31)">
+                            ⚡ सुनीता वर्मा (Sunita Verma)
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 14px; background: rgba(255,255,255,0.04); border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); text-align: left;">
+                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #94a3b8;">या नया नागरिक दर्ज करें (Or Enter Citizen Details):</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <input type="text" id="manualName" placeholder="नाम (Citizen Name)" style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px 12px; border-radius:8px; flex:1; min-width:130px;">
+                            <input type="text" id="manualAbha" placeholder="ABHA ID" style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px 12px; border-radius:8px; flex:1; min-width:150px;">
+                            <input type="number" id="manualAge" placeholder="उम्र" value="26" style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px 12px; border-radius:8px; width:70px;">
+                            <button class="touch-btn primary" style="padding:8px 16px; font-size:13px;" onclick="handleManualPatientTap()">
+                                आगे बढ़ें (Proceed)
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stage 2: Optical Sensor PPG Reading -->
+                <section class="stage-card hidden" id="stage2">
+                    <div class="pulse-ring">
+                        <div class="finger-graphic">👆</div>
+                    </div>
+                    <h2 id="lblFingerPrompt">सेंसर पर अंगूठा रखें (सुई की जरूरत नहीं)</h2>
+                    <p class="stage-desc" id="lblFingerDesc">MAX30102 ऑप्टिकल सेंसर बियर-लैम्बर्ट स्पेक्ट्रोस्कोपी द्वारा बिना खून निकाले हीमोग्लोबिन माप रहा है...</p>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="scanProgress"></div>
+                    </div>
+                    <div class="ppg-wave-box">
+                        <canvas id="ppgCanvas" width="500" height="90"></canvas>
+                    </div>
+
+                    <button class="touch-btn primary" onclick="startOpticalReading()">
+                        ▶️ जांच शुरू करें (10 सेकंड)
+                    </button>
+                </section>
+
+                <!-- Stage 3: Results & Print -->
+                <section class="stage-card hidden" id="stage3">
+                    <div class="results-grid">
+                        <div class="vital-card hb-card" id="hbCard">
+                            <span class="vital-title" id="lblHbTitle">हीमोग्लोबिन (Hb)</span>
+                            <div class="vital-value" id="resHb">--</div>
+                            <div class="vital-grade" id="resGrade">जांच जारी...</div>
+                        </div>
+                        <div class="vital-card">
+                            <span class="vital-title">ऑक्सीजन (SpO2)</span>
+                            <div class="vital-value" id="resSpo2">98.5%</div>
+                            <div class="vital-grade text-success">सामान्य</div>
+                        </div>
+                        <div class="vital-card">
+                            <span class="vital-title">पल्स रेट (Pulse)</span>
+                            <div class="vital-value" id="resHr">76 BPM</div>
+                            <div class="vital-grade">नॉर्मल रिदम</div>
+                        </div>
+                    </div>
+
+                    <div class="advice-banner" id="adviceBanner">
+                        <strong>स्वास्थ्य सलाह:</strong> हरी पत्तेदार सब्जियां और आयरन की गोलियां समय पर लें।
+                    </div>
+
+                    <div class="action-row">
+                        <button class="touch-btn print-btn" onclick="printReceiptSlip()">
+                            🖨️ पर्ची प्रिंट करें (Print Slip)
+                        </button>
+                        <button class="touch-btn secondary" onclick="resetWorkflow()">
+                            🔄 अगला मरीज (Next Patient)
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Side: Patient Info & Receipt Feed -->
+            <div class="receipt-pane">
+                <div class="panel-box">
+                    <h3 class="panel-heading" id="lblPatientHeading">मरीज विवरण (Patient Details)</h3>
+                    <div class="patient-details" id="patientInfo">
+                        <p><strong>नाम:</strong> <span id="pName">--</span></p>
+                        <p><strong>ABHA ID:</strong> <span id="pAbha">--</span></p>
+                        <p><strong>आयु / लिंग:</strong> <span id="pAge">--</span></p>
+                        <p><strong>केंद्र:</strong> रामपुर उप-स्वास्थ्य केंद्र</p>
+                    </div>
+                </div>
+
+                <div class="panel-box printer-box">
+                    <h3 class="panel-heading">🖨️ थर्मल प्रिंटर पर्ची (Live Paper Slip)</h3>
+                    <div class="thermal-paper" id="paperSlip">
+================================<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PROJECT MEDIBOT KIOSK<br>
+&nbsp;&nbsp;RURAL HEALTH CHECKUP SLIP<br>
+================================<br>
+[मरीज का कार्ड स्कैन होने पर<br>यहां पर्ची तैयार होगी...]<br>
+================================
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
