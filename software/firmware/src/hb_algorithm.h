@@ -3,18 +3,14 @@
 #ifndef HB_ALGORITHM_H
 #define HB_ALGORITHM_H
 
-#ifdef ARDUINO
 #include <Arduino.h>
-#else
-#include <cmath>
-#endif
 
 // Calibration Weights
-static const float HB_WEIGHT_BIAS = -33.101360f;
-static const float HB_WEIGHT_INV_R = 37.809596f;
-static const float HB_WEIGHT_R = 9.692832f;
-static const float HB_WEIGHT_PI_IR = -0.002258f;
-static const float HB_WEIGHT_RATIO_PI = 0.038840f;
+static const float HB_WEIGHT_BIAS = -32.574676f;
+static const float HB_WEIGHT_INV_R = 37.438378f;
+static const float HB_WEIGHT_R = 9.544445f;
+static const float HB_WEIGHT_PI_IR = 0.007217f;
+static const float HB_WEIGHT_RATIO_PI = 0.008786f;
 
 enum AnemiaSeverity {
     ANEMIA_NONE = 0,       // >= 12.0 g/dL (Normal)
